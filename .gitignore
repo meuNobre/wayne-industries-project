@@ -1,0 +1,4 @@
+# Ambientes virtuais Python
+**/venv/
+**/.venv/
+**/_pycache__/
