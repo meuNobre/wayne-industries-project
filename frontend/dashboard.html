@@ -86,6 +86,16 @@
                     
                     <div class="chart-card">
                         <h3>Atividades Recentes</h3>
+                        <!-- Adiciona filtro de período para atividades -->
+                        <div class="activity-filter">
+                            <select id="activityPeriodFilter">
+                                <option value="all">Todas</option>
+                                <option value="1hour">Última hora</option>
+                                <option value="3days">Últimos 3 dias</option>
+                                <option value="7days">Últimos 7 dias</option>
+                                <option value="30days">Último mês</option>
+                            </select>
+                        </div>
                         <div class="activity-list" id="activityList">
                             <!-- Atividades serão inseridas aqui -->
                         </div>

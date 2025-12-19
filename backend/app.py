@@ -83,11 +83,18 @@ def create_resource():
         conn.close()
         return jsonify({"error": "Permission denied"}), 403
 
-    # cria o recurso
     cursor.execute(
         "INSERT INTO resources (name, description) VALUES (%s, %s)",
         (data['name'], data.get('description'))
     )
+    resource_id = cursor.lastrowid
+    
+    # Registra log de criação
+    cursor.execute(
+        "INSERT INTO activity_logs (resource_id, resource_name, action, user_id) VALUES (%s, %s, %s, %s)",
+        (resource_id, data['name'], 'created', user_id)
+    )
+    
     conn.commit()
 
     cursor.close()
@@ -119,13 +126,43 @@ def update_resource(resource_id):
         conn.close()
         return jsonify({"error": "Permission denied"}), 403
 
-    status = data.get('status', 'active')  # Default para 'active' se não fornecido
+    cursor.execute(
+        "SELECT name, description, status FROM resources WHERE id = %s",
+        (resource_id,)
+    )
+    old_resource = cursor.fetchone()
+
+    status = data.get('status', 'active')
     
     cursor.execute(
         "UPDATE resources SET name = %s, description = %s, status = %s WHERE id = %s",
         (data['name'], data.get('description'), status, resource_id)
     )
     conn.commit()
+
+    # Log de mudança de status
+    if old_resource and old_resource['status'] != status:
+        cursor.execute(
+            "INSERT INTO activity_logs (resource_id, resource_name, action, old_status, new_status, user_id) VALUES (%s, %s, %s, %s, %s, %s)",
+            (resource_id, data['name'], 'status_change', old_resource['status'], status, user_id)
+        )
+        conn.commit()
+    
+    # Log de mudança de nome
+    if old_resource and old_resource['name'] != data['name']:
+        cursor.execute(
+            "INSERT INTO activity_logs (resource_id, resource_name, action, old_value, new_value, user_id) VALUES (%s, %s, %s, %s, %s, %s)",
+            (resource_id, data['name'], 'name_change', old_resource['name'], data['name'], user_id)
+        )
+        conn.commit()
+    
+    # Log de mudança de descrição
+    if old_resource and old_resource['description'] != data.get('description'):
+        cursor.execute(
+            "INSERT INTO activity_logs (resource_id, resource_name, action, old_value, new_value, user_id) VALUES (%s, %s, %s, %s, %s, %s)",
+            (resource_id, data['name'], 'description_change', old_resource.get('description', ''), data.get('description', ''), user_id)
+        )
+        conn.commit()
 
     cursor.close()
     conn.close()
@@ -156,6 +193,17 @@ def delete_resource(resource_id):
         conn.close()
         return jsonify({"error": "Permission denied"}), 403
 
+    cursor.execute("SELECT name FROM resources WHERE id = %s", (resource_id,))
+    resource = cursor.fetchone()
+    
+    if resource:
+        # Registra log de exclusão
+        cursor.execute(
+            "INSERT INTO activity_logs (resource_id, resource_name, action, user_id) VALUES (%s, %s, %s, %s)",
+            (resource_id, resource['name'], 'deleted', user_id)
+        )
+        conn.commit()
+    
     # deleta o recurso
     cursor.execute("DELETE FROM resources WHERE id = %s", (resource_id,))
     conn.commit()
@@ -181,6 +229,8 @@ def get_dashboard_stats():
     
     if not user_id:
         return jsonify({"error": "User not authenticated"}), 401
+    
+    period = request.args.get('period', 'all')
     
     conn = db()
     cursor = conn.cursor(dictionary=True)
@@ -214,14 +264,51 @@ def get_dashboard_stats():
         """)
         users_by_role = cursor.fetchall()
         
-        # 6. Últimas atividades (últimos 5 recursos criados)
+        # Verificar se a tabela existe primeiro
         cursor.execute("""
-            SELECT id, name, description, create_at 
-            FROM resources 
-            ORDER BY create_at DESC 
-            LIMIT 5
+            SELECT COUNT(*) as table_exists 
+            FROM information_schema.tables 
+            WHERE table_schema = DATABASE() 
+            AND table_name = 'activity_logs'
         """)
-        recent_activities = cursor.fetchall()
+        
+        table_exists = cursor.fetchone()['table_exists'] > 0
+        
+        if table_exists:
+            period_filter = ""
+            if period == '1hour':
+                period_filter = "WHERE created_at >= DATE_SUB(NOW(), INTERVAL 1 HOUR)"
+            elif period == '3days':
+                period_filter = "WHERE created_at >= DATE_SUB(NOW(), INTERVAL 3 DAY)"
+            elif period == '7days':
+                period_filter = "WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)"
+            elif period == '30days':
+                period_filter = "WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)"
+            
+            # Se existe tabela de logs, buscar dos logs
+            cursor.execute(f"""
+                SELECT 
+                    resource_name as name,
+                    action,
+                    old_status,
+                    new_status,
+                    old_value,
+                    new_value,
+                    created_at as create_at
+                FROM activity_logs
+                {period_filter}
+                ORDER BY created_at DESC
+                LIMIT 50
+            """)
+            recent_activities = cursor.fetchall()
+        else:
+            cursor.execute("""
+                SELECT id, name, status, create_at 
+                FROM resources 
+                ORDER BY create_at DESC 
+                LIMIT 10
+            """)
+            recent_activities = cursor.fetchall()
         
         cursor.close()
         conn.close()

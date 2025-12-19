@@ -257,16 +257,70 @@ body {
   }
 }
 
+/* Adiciona estilos para o filtro de atividades */
+.activity-filter {
+  margin-bottom: 16px;
+
+  select {
+    width: 100%;
+    padding: 10px 14px;
+    background: #2a2d36;
+    border: 2px solid #e6e6e61a;
+    border-radius: 8px;
+    color: #e6e6e6;
+    font-size: 13px;
+    font-family: "Inter", sans-serif;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.3s ease;
+
+    &:focus {
+      border-color: #1faa6f;
+      box-shadow: 0 0 0 3px #1faa6f1a;
+    }
+
+    option {
+      background: #1a1c22;
+      color: #e6e6e6;
+      padding: 10px;
+    }
+  }
+}
+
 .activity-item {
   padding: 12px 16px;
   background: #2a2d3633;
   border-radius: 10px;
-  border-left: 3px solid #1faa6f;
+  border-left: 3px solid;
   transition: all 0.3s ease;
+
+  &.activity-active {
+    border-left-color: #1faa6f;
+  }
+
+  &.activity-maintenance {
+    border-left-color: #b2771dff;
+  }
+
+  &.activity-inactive {
+    border-left-color: #d61f3a;
+  }
+
+  &.activity-created {
+    border-left-color: #3b82f6;
+  }
+
+  /* Adiciona estilos para novos tipos de atividades */
+  &.activity-deleted {
+    border-left-color: #d61f3a;
+  }
+
+  &.activity-updated {
+    border-left-color: #b2771dff;
+  }
 
   &:hover {
     background: #2a2d3666;
-    transform: translateX(4px);
   }
 }
 
@@ -274,6 +328,13 @@ body {
   color: #e6e6e6;
   font-weight: 600;
   font-size: 14px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.activity-action {
+  color: #a1a1aa;
+  font-size: 13px;
   display: block;
   margin-bottom: 4px;
 }
@@ -1114,21 +1175,5 @@ select {
       width: 40px;
       height: 40px;
     }
-
-    .logo-section h1 {
-      font-size: 14px;
-    }
-  }
-
-  .stat-card {
-    padding: 16px;
-
-    .stat-value {
-      font-size: 28px;
-    }
-  }
-
-  .section-header h2 {
-    font-size: 24px;
   }
 }

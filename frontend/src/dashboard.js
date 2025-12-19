@@ -26,6 +26,7 @@ const elements = {
   totalUsers: document.getElementById("totalUsers"),
   activeResources: document.getElementById("activeResources"),
   activityList: document.getElementById("activityList"),
+  activityPeriodFilter: document.getElementById("activityPeriodFilter"), // Adiciona elemento para filtro de período
 
   // Formulário criar
   createSection: document.getElementById("createSection"),
@@ -102,12 +103,17 @@ function init() {
   elements.deleteModal.addEventListener("click", (e) => {
     if (e.target === elements.deleteModal) closeDeleteModal()
   })
+
+  elements.activityPeriodFilter.addEventListener("change", () => {
+    loadDashboardStats()
+  })
 }
 
 // ===== CARREGAR ESTATÍSTICAS =====
 async function loadDashboardStats() {
   try {
-    const response = await fetch(`${API_URL}/dashboard/stats`, {
+    const period = elements.activityPeriodFilter?.value || "all"
+    const response = await fetch(`${API_URL}/dashboard/stats?period=${period}`, {
       headers: { "X-User-Id": user.id.toString() },
     })
 
@@ -148,9 +154,45 @@ function renderActivities(activities) {
         minute: "2-digit",
       })
 
+      let activityClass = "activity-created"
+      let actionText = "Recurso criado"
+
+      if (activity.action === "created") {
+        activityClass = "activity-created"
+        actionText = "Recurso criado"
+      } else if (activity.action === "deleted") {
+        activityClass = "activity-deleted"
+        actionText = "Recurso excluído"
+      } else if (activity.action === "status_change") {
+        // É uma mudança de status
+        activityClass = `activity-${activity.new_status}`
+
+        const statusTranslations = {
+          active: "Ativo",
+          maintenance: "Em Manutenção",
+          inactive: "Inativo",
+        }
+
+        const oldStatusText = statusTranslations[activity.old_status] || activity.old_status
+        const newStatusText = statusTranslations[activity.new_status] || activity.new_status
+
+        actionText = `Status alterado: ${oldStatusText} → ${newStatusText}`
+      } else if (activity.action === "name_change") {
+        activityClass = "activity-updated"
+        actionText = `Nome alterado: "${activity.old_value}" → "${activity.new_value}"`
+      } else if (activity.action === "description_change") {
+        activityClass = "activity-updated"
+        actionText = "Descrição atualizada"
+      } else if (activity.status) {
+        // É um recurso com status (fallback quando não há tabela de logs)
+        activityClass = `activity-${activity.status}`
+        actionText = `Recurso ${activity.status === "active" ? "ativo" : activity.status === "maintenance" ? "em manutenção" : "inativo"}`
+      }
+
       return `
-            <div class="activity-item">
+            <div class="activity-item ${activityClass}">
                 <span class="activity-name">${escapeHtml(activity.name)}</span>
+                <span class="activity-action">${actionText}</span>
                 <span class="activity-date">${date}</span>
             </div>
         `
