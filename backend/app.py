@@ -3,7 +3,24 @@ from flask_cors import CORS
 from db import get_db_connection as db;
 
 app = Flask(__name__)
-CORS(app)
+from flask_cors import CORS
+
+CORS(
+    app,
+    resources={r"/*": {"origins": [
+        "https://wayne-industries-project.vercel.app"
+    ]}},
+    supports_credentials=True,
+    allow_headers=["Content-Type", "X-User-Id"],
+    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+)
+
+
+@app.before_request
+def handle_preflight():
+    if request.method == "OPTIONS":
+        return "", 200
+
 
 @app.route('/')
 def home():
