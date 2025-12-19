@@ -3,7 +3,14 @@ const passwordInput = document.getElementById('password');
 const button = document.getElementById('button');
 const loginError = document.getElementById('loginError');
 
-button.addEventListener('click', async () => {
+// ===== VERIFICAÇÃO DE AUTENTICAÇÃO =====
+const user = JSON.parse(localStorage.getItem('user'));
+
+if (user) {
+    window.location.href = '/frontend/dashboard.html';
+}
+
+async function login() {
     const username = userInput.value;
     const password = passwordInput.value;
 
@@ -18,10 +25,32 @@ button.addEventListener('click', async () => {
     const data  = await response.json();
 
     if(!response.ok){
-        loginError.textContent = data.error;
+        showLoginError(data.error);
         return
     }
     
     localStorage.setItem("user", JSON.stringify(data));
     window.location.href = '/frontend/dashboard.html';
+}
+
+button.addEventListener('click', login);
+
+[userInput, passwordInput].forEach(input => {
+    input.addEventListener('keydown', (e) => {
+        if(e.key === 'Enter'){
+            login();
+        }
+    });
 });
+
+// Função para mostrar erro
+function showLoginError(message) {
+    loginError.textContent = message;
+    loginError.classList.add('show-error');
+
+    // Remover após 4 segundos
+    setTimeout(() => {
+        loginError.classList.remove('show-error'); 
+        loginError.textContent = '';
+    } , 5000);
+}

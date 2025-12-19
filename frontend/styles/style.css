@@ -1,3 +1,4 @@
+/* ===== RESET E CONFIGURAÇÕES GLOBAIS ===== */
 * {
     margin: 0;
     padding: 0;
@@ -6,32 +7,32 @@
 
 body {
     font-family: 'Inter', sans-serif;
-    /* overflow-x: hidden; */
+    overflow-x: hidden;
 }
 
 /* ===== CONTAINER PRINCIPAL ===== */
 .main-login {
-    width: 100%; 
-    min-height: 100vh;
-    /* ISSO AQUI FAZ UM GRADIENTE!!! */
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f1419 100%);
+    width: 100vw;
+    height: 100vh;
+    /* Gradiente escuro profissional */
+    background: linear-gradient(135deg, #0e0f13 0%, #1a1c22 50%, #2a2d36 100%);
     display: flex;
     justify-content: center;
     align-items: center;
     position: relative;
     
-    /* Efeito de grade no fundo */
+    /* Efeito de grade no fundo - usando pseudo-elemento ::before */
     &::before {
-    content: '';
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background-image: 
-        linear-gradient(#ffffff05 1px, transparent 1px),
-        linear-gradient(90deg, #ffffff05 1px, transparent 1px);
-    background-size: 50px 50px;
-    pointer-events: none; /* Permite clicar através do elemento */
-}
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background-image: 
+            linear-gradient(#e6e6e60a 1px, transparent 1px),
+            linear-gradient(90deg, #e6e6e60a 1px, transparent 1px);
+        background-size: 50px 50px;
+        pointer-events: none;
+    }
 }
 
 
@@ -46,21 +47,22 @@ body {
     flex-direction: column;
     position: relative;
     z-index: 1;
+
     h1 {
-        color: #F5F3F5;
+        color: #e6e6e6;
         /* clamp() = responsivo automático: (mínimo, preferido, máximo) */
         font-size: clamp(24px, 3vw, 48px);
         font-weight: 700;
-        margin-top: -40px;
+        margin-top: 30px;
         text-align: center;
         letter-spacing: 2px;
+        text-transform: uppercase;
     }
 }
 
-
 .left-login-image {
     width: 35vw;
-    max-width: 500px;
+    max-width: 400px;
     filter: drop-shadow(0 20px 40px #00000080);
     animation: float 6s ease-in-out infinite;
 }
@@ -96,28 +98,28 @@ body {
     justify-content: center;
     align-items: center;
     padding: 50px 45px;
-    /* Fundo semi-transparente */
-    background: #1e2952d9;
+    /* Fundo semi-transparente escuro */
+    background: #1a1c22e6;
+    /* Glassmorphism - desfoque do fundo */
     backdrop-filter: blur(20px);
     border-radius: 24px;
     /* Múltiplas sombras para profundidade */
     box-shadow: 
         0 20px 60px #00000066,
-        0 0 0 1px #ffffff1a,
-        inset 0 1px 0 #ffffff1a;
-    border: 1px solid #ffffff14;
+        0 0 0 1px #e6e6e61a,
+        inset 0 1px 0 #e6e6e61a;
+    border: 1px solid #e6e6e614;
     position: relative;
     animation: slideIn 0.6s ease-out;
-
+    
     h1 {
-        color: #E8F1F8;
+        color: #e6e6e6;
         font-weight: 700;
         margin: 0 0 10px 0;
         font-size: 28px;
         letter-spacing: 3px;
         text-transform: uppercase;
     }
-
 }
 
 /* Animação de entrada do card */
@@ -132,10 +134,8 @@ body {
     }
 }
 
-
-
 .subtitle {
-    color: #ffffff99;
+    color: #a1a1aa;
     font-size: 14px;
     margin-bottom: 35px;
     font-weight: 400;
@@ -149,40 +149,15 @@ body {
     justify-content: center;
     margin: 12px 0;
     width: 100%;
+
     label {
-        color: #E8F1F8;
+        color: #e6e6e6;
         margin-bottom: 8px;
         font-weight: 600;
         font-size: 14px;
         letter-spacing: 0.5px;
     }
-
-    input {
-        width: 100%;
-        border: 2px solid #ffffff1a;
-        border-radius: 12px;
-        padding: 16px 18px;
-        background: #ffffff0d;
-        color: #F5F3F5;
-        font-size: 15px;
-        outline: none;
-        /* Transição suave em todas as propriedades */
-        transition: all 0.3s ease;
-        font-family: 'Inter', sans-serif;
-        &::placeholder {
-            color: #ffffff66;
-            font-size: 14px;
-        }
-
-        &:focus {
-            border-color: #667eea;
-            background: #ffffff14;
-            /* box-shadow com spread 4px para efeito de glow */
-            box-shadow: 0 0 0 4px #667eea1a;
-        }
-    }
 }
-
 
 
 .input-wrapper {
@@ -190,22 +165,49 @@ body {
     position: relative;
 }
 
+.text-field input {
+    width: 100%;
+    border: 2px solid #e6e6e61a;
+    border-radius: 12px;
+    padding: 16px 18px;
+    /* Fundo escuro semi-transparente */
+    background: #2a2d3633;
+    color: #e6e6e6;
+    font-size: 15px;
+    outline: none;
+    /* Transição suave em todas as propriedades */
+    transition: all 0.3s ease;
+    font-family: 'Inter', sans-serif;
+    
+    &::placeholder {
+        color: #a1a1aa;
+        font-size: 14px;
+    }   
+
+    /* Estado focus - quando o usuário clica no input */
+    &:focus {
+        border-color: #1faa6f;
+        background: #2a2d3666;
+        /* box-shadow com spread 4px para efeito de glow */
+        box-shadow: 0 0 0 4px #1faa6f1a;
+
+    }
+
+}
+
 /* ===== LINK "ESQUECEU A SENHA" ===== */
 .forgot-password {
     align-self: flex-end;
-    color: #8b9dc3;
+    color: #a1a1aa;
     font-size: 13px;
     text-decoration: none;
     margin-top: 8px;
     transition: color 0.3s ease;
     font-weight: 500;
-    
-    &:hover {
-    color: #667eea;
+    &:hover{
+    color: #1faa6f;
+    }
 }
-}
-
-
 
 /* ===== BOTÃO DE LOGIN ===== */
 .btn {
@@ -214,9 +216,9 @@ body {
     margin-top: 30px;
     border: none;
     border-radius: 12px;
-    /* Gradiente no botão */
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: #ffffff;
+    /* Gradiente verde profissional */
+    background: linear-gradient(135deg, #1faa6f 0%, #189956 100%);
+    color: #e6e6e6;
     font-weight: 700;
     font-size: 15px;
     cursor: pointer;
@@ -224,11 +226,11 @@ body {
     text-transform: uppercase;
     letter-spacing: 1.5px;
     transition: all 0.3s ease;
-    box-shadow: 0 10px 30px #667eea4d;
+    box-shadow: 0 10px 30px #1faa6f33;
     position: relative;
-    overflow: hidden;
+    overflow: hidden; /* Importante para o efeito de brilho */
 
-    /* Efeito de brilho que passa pelo botão */
+        /* Efeito de brilho que passa pelo botão */
     &::before {
         content: '';
         position: absolute;
@@ -236,7 +238,7 @@ body {
         left: -100%;
         width: 100%;
         height: 100%;
-        background: linear-gradient(90deg, transparent, #ffffff33, transparent);
+        background: linear-gradient(90deg, transparent, #ffffff20, transparent);
         transition: left 0.5s ease;
     }
 
@@ -246,15 +248,13 @@ body {
 
     &:hover {
         transform: translateY(-2px);
-        box-shadow: 0 15px 40px #667eea66;
+        box-shadow: 0 15px 40px #1faa6f4d;
     }
 
     &:active {
         transform: translateY(0);
     }
-
 }
-
 
 
 /* ===== BADGE DE SEGURANÇA ===== */
@@ -264,30 +264,59 @@ body {
     justify-content: center;
     gap: 8px;
     margin-top: 25px;
-    color: #ffffff80;
+    color: #a1a1aa;
     font-size: 12px;
-
+    
     svg {
-        width: 16px;
-        height: 16px;
-        fill: #4ade80;
-    }
+    width: 16px;
+    height: 16px;
+    fill: #1faa6f;
+}
 }
 
+#loginError {
+    width: 100%;
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+#loginError.show-error {
+    display: flex;
+    padding: 12px 18px;
+    background: #ff4b5c33; /* vermelho semi-transparente */
+    border-left: 4px solid #ff4b5c; /* destaque */
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 12px;
+    opacity: 0;
+    transform: translateY(-10px);
+    animation: fadeIn 0.3s forwards, fadeOut 0.3s 3.7s forwards;
+    text-align: center;
+    font-family: 'Inter', sans-serif;
+}
+
+/* Animação */
+@keyframes fadeIn {
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeOut {
+    to { opacity: 0; transform: translateY(-10px); }
+}
 
 
 /* ===== RESPONSIVIDADE ===== */
 @media only screen and (max-width: 950px) {
     .card-login {
         width: 85%;
+        padding: 40px 35px;
     }
 }
 
 @media only screen and (max-width: 768px) {
     .main-login {
         flex-direction: column;
-        height: auto;
-        min-height: 100dvh;
         padding: 20px;
     }
 
@@ -296,12 +325,6 @@ body {
         height: auto;
         min-height: 30vh;
         padding: 20px 0;
-
-        h1 {
-        font-size: 24px;
-        margin-top: 15px;
-        display: none;
-        }
     }
 
     .right-login {
@@ -311,15 +334,18 @@ body {
     }
 
     .left-login-image {
-        width: 60vw;
-        max-width: 400px;
-        transform: none;
-        animation: none;
+        width: 50vw;
+        max-width: 200px;
+    }
+
+    .left-login h1 {
+        font-size: 24px;
+        margin-top: 15px;
     }
 
     .card-login {
         width: 100%;
-            /* padding: 35px 25px; */
-        margin-top: -50px;
+        padding: 35px 25px;
     }
 }
+

@@ -5,5 +5,5 @@ def get_db_connection():
         host='localhost',
         user="wayne_app",
         password="Wayne@123",
-        database="wayne"
+        database="wayne_industries"
     )
