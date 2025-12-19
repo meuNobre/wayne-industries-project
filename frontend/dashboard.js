@@ -66,7 +66,44 @@ const elements = {
   cancelDelete: document.getElementById("cancelDelete"),
   confirmDelete: document.getElementById("confirmDelete"),
   modalResourceName: document.getElementById("modalResourceName"),
+
+  editUserModal: document.getElementById('editUserModal'),
+  editUserModalClose: document.getElementById('editUserModalClose'),
+  editUserForm: document.getElementById('editUserForm'),
+  editUsername: document.getElementById('editUsername'),
+  editUserRole: document.getElementById('editUserRole'),
+  editUserPassword: document.getElementById('editUserPassword'),
+  cancelEditUser: document.getElementById('cancelEditUser'),
+  confirmEditUser: document.getElementById('confirmEditUser'),
+  
+  deleteUserModal: document.getElementById('deleteUserModal'),
+  deleteUserModalClose: document.getElementById('deleteUserModalClose'),
+  modalUserName: document.getElementById('modalUserName'),
+  cancelDeleteUser: document.getElementById('cancelDeleteUser'),
+  confirmDeleteUser: document.getElementById('confirmDeleteUser'),
 }
+
+// Variável global
+let userToEdit = null
+let userToDelete = null
+
+// Adicione aos event listeners no init()
+elements.editUserModalClose.addEventListener('click', closeEditUserModal)
+elements.cancelEditUser.addEventListener('click', closeEditUserModal)
+elements.confirmEditUser.addEventListener('click', handleConfirmEditUser)
+
+elements.deleteUserModalClose.addEventListener('click', closeDeleteUserModal)
+elements.cancelDeleteUser.addEventListener('click', closeDeleteUserModal)
+elements.confirmDeleteUser.addEventListener('click', handleConfirmDeleteUser)
+
+// Fecha modais ao clicar fora
+elements.editUserModal.addEventListener('click', (e) => {
+  if (e.target === elements.editUserModal) closeEditUserModal()
+})
+
+elements.deleteUserModal.addEventListener('click', (e) => {
+  if (e.target === elements.deleteUserModal) closeDeleteUserModal()
+})
 
 // Variáveis globais
 let resourceToDelete = null
@@ -181,7 +218,7 @@ async function loadDashboardStats() {
   }
 }
 
-// ===== RENDERIZAR ATIVIDADES RECENTES =====
+
 function renderActivities(activities) {
   if (activities.length === 0) {
     elements.activityList.innerHTML =
@@ -485,38 +522,194 @@ function renderUsers(users) {
     return
   }
 
-  elements.usersList.innerHTML = users
-    .map((u) => {
-      const roleColors = {
-        admin: "#d61f3a",
-        manager: "#b2771dff",
-        employee: "#1faa6f",
+  elements.usersList.innerHTML = users.map((u) => {
+    const initials = u.username.substring(0, 2).toUpperCase()
+    const isCurrentUser = u.id === user.id
+    
+    let formattedDate = "Data não disponível"
+    if (u.created_at) {
+      try {
+        const date = new Date(u.created_at)
+        formattedDate = date.toLocaleDateString("pt-BR", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        })
+      } catch (e) {
+        console.error("Erro ao formatar data:", e)
       }
+    }
 
-      const roleNames = {
-        admin: "Administrador",
-        manager: "Gerente",
-        employee: "Funcionário",
-      }
-
-      return `
+    return `
       <div class="user-card">
         <div class="user-card-header">
-          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-            <circle cx="12" cy="7" r="4"></circle>
-          </svg>
+          <div class="user-avatar">${initials}</div>
+          <div class="user-card-body">
+            <h4>
+              ${escapeHtml(u.username)}
+              ${isCurrentUser ? `
+                <span class="user-self-badge">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                  Você
+                </span>
+              ` : ''}
+            </h4>
+            <span class="user-role-badge role-${u.role}">
+              ${u.role === 'admin' ? 'Administrador' : u.role === 'manager' ? 'Gerente' : 'Funcionário'}
+            </span>
+          </div>
         </div>
-        <div class="user-card-body">
-          <h4>${escapeHtml(u.username)}</h4>
-          <span class="user-role-badge" style="background-color: ${roleColors[u.role]};">
-            ${roleNames[u.role] || u.role}
-          </span>
+        <div class="user-card-footer">
+          <span class="user-card-date">Criado em ${formattedDate}</span>
+          ${!isCurrentUser ? `
+            <div class="user-card-actions">
+              <button class="btn-user-edit" data-user-id="${u.id}" data-username="${escapeHtml(u.username)}" data-role="${u.role}">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+                Editar
+              </button>
+              <button class="btn-user-delete" data-user-id="${u.id}" data-username="${escapeHtml(u.username)}">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+                Excluir
+              </button>
+            </div>
+          ` : ''}
         </div>
       </div>
     `
+  }).join("")
+  // Adiciona event listeners
+  document.querySelectorAll('.btn-user-edit').forEach(btn => {
+    btn.addEventListener('click', () => {
+      openEditUserModal({
+        id: btn.dataset.userId,
+        username: btn.dataset.username,
+        role: btn.dataset.role
+      })
     })
-    .join("")
+  })
+
+  document.querySelectorAll('.btn-user-delete').forEach(btn => {
+    btn.addEventListener('click', () => {
+      openDeleteUserModal(btn.dataset.userId, btn.dataset.username)
+    })
+  })
+}
+
+// ===== MODAL EDITAR USUÁRIO =====
+function openEditUserModal(userData) {
+  userToEdit = userData
+  elements.editUsername.value = userData.username
+  elements.editUserRole.value = userData.role
+  elements.editUserPassword.value = ''
+  elements.editUserModal.classList.add('active')
+}
+
+function closeEditUserModal() {
+  userToEdit = null
+  elements.editUserForm.reset()
+  elements.editUserModal.classList.remove('active')
+}
+
+async function handleConfirmEditUser() {
+  if (!userToEdit) return
+
+  const username = elements.editUsername.value.trim()
+  const role = elements.editUserRole.value
+  const password = elements.editUserPassword.value.trim()
+
+  if (!username || !role) {
+    alert('Preencha todos os campos obrigatórios')
+    return
+  }
+
+  try {
+    const body = { username, role }
+    if (password) {
+      body.password = password
+    }
+
+    const response = await fetch(`${API_URL}/users/${userToEdit.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-User-Id': user.id.toString(),
+      },
+      body: JSON.stringify(body),
+    })
+
+    if (!response.ok) {
+      if (response.status === 403) {
+        alert('Você não tem permissão para editar usuários.')
+        closeEditUserModal()
+        return
+      }
+      const error = await response.json()
+      throw new Error(error.error || 'Erro ao editar usuário')
+    }
+
+    closeEditUserModal()
+    await loadUsers()
+    await loadDashboardStats()
+    alert('Usuário atualizado com sucesso!')
+  } catch (error) {
+    console.error('Erro:', error)
+    alert(`Erro ao editar usuário: ${error.message}`)
+  }
+}
+
+// ===== MODAL DELETAR USUÁRIO =====
+function openDeleteUserModal(userId, username) {
+  userToDelete = userId
+  elements.modalUserName.textContent = username
+  elements.deleteUserModal.classList.add('active')
+}
+
+function closeDeleteUserModal() {
+  userToDelete = null
+  elements.deleteUserModal.classList.remove('active')
+}
+
+async function handleConfirmDeleteUser() {
+  if (!userToDelete) return
+
+  try {
+    const response = await fetch(`${API_URL}/users/${userToDelete}`, {
+      method: 'DELETE',
+      headers: { 'X-User-Id': user.id.toString() },
+    })
+
+    if (!response.ok) {
+      if (response.status === 403) {
+        alert('Você não tem permissão para deletar usuários.')
+        closeDeleteUserModal()
+        return
+      }
+      if (response.status === 400) {
+        alert('Você não pode deletar sua própria conta.')
+        closeDeleteUserModal()
+        return
+      }
+      const error = await response.json()
+      throw new Error(error.error || 'Erro ao deletar usuário')
+    }
+
+    closeDeleteUserModal()
+    await loadUsers()
+    await loadDashboardStats()
+    alert('Usuário excluído com sucesso!')
+  } catch (error) {
+    console.error('Erro:', error)
+    alert(`Erro ao deletar usuário: ${error.message}`)
+  }
 }
 
 async function handleCreateUser(e) {

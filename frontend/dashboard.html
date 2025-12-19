@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="users-extra.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 </head>
 <body>
@@ -265,6 +266,59 @@
             <div class="modal-footer">
                 <button class="btn-secondary" id="cancelDelete">Cancelar</button>
                 <button class="btn-danger" id="confirmDelete">Excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="editUserModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Editar Usuário</h3>
+            <button class="modal-close" id="editUserModalClose">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="editUserForm">
+                <div class="form-group">
+                    <label for="editUsername">Nome de Usuário</label>
+                    <input type="text" id="editUsername" placeholder="Username" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editUserRole">Função</label>
+                    <select id="editUserRole" required>
+                        <option value="employee">Funcionário (Employee)</option>
+                        <option value="manager">Gerente (Manager)</option>
+                        <option value="admin">Administrador (Admin)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="editUserPassword">Nova Senha (opcional)</label>
+                    <input type="password" id="editUserPassword" placeholder="Deixe em branco para manter a atual">
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" id="cancelEditUser">Cancelar</button>
+            <button class="btn-primary" id="confirmEditUser">Salvar Alterações</button>
+        </div>
+    </div>
+</div>
+
+    <!-- Modal de deletar usuário -->
+    <div class="modal" id="deleteUserModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Confirmar Exclusão</h3>
+                <button class="modal-close" id="deleteUserModalClose">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja excluir este usuário?</p>
+                <p class="modal-resource-name" id="modalUserName"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="cancelDeleteUser">Cancelar</button>
+                <button class="btn-danger" id="confirmDeleteUser">Excluir</button>
             </div>
         </div>
     </div>

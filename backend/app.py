@@ -119,6 +119,61 @@ def create_user():
 
     return jsonify({"message": "User created successfully"}), 201
 
+@app.route('/users/<int:user_id>', methods=['DELETE'])
+def delete_user(user_id):
+    """
+    Deleta um usuário pelo ID
+    Apenas admin pode deletar
+    Não pode deletar a si mesmo
+    """
+    admin_id = request.headers.get('X-User-Id')
+    
+    if not admin_id:
+        return jsonify({"error": "User not authenticated"}), 401
+    
+    # Não pode deletar a si mesmo
+    if int(admin_id) == user_id:
+        return jsonify({"error": "Cannot delete yourself"}), 400
+    
+    conn = db()
+    cursor = conn.cursor(dictionary=True)
+    
+    try:
+        # Verifica se é admin
+        cursor.execute("SELECT role FROM users WHERE id = %s", (admin_id,))
+        admin = cursor.fetchone()
+        
+        if not admin or admin['role'] != 'admin':
+            cursor.close()
+            conn.close()
+            return jsonify({"error": "Permission denied. Admin only"}), 403
+        
+        # Verifica se o usuário a deletar existe
+        cursor.execute("SELECT id, username FROM users WHERE id = %s", (user_id,))
+        user_to_delete = cursor.fetchone()
+        
+        if not user_to_delete:
+            cursor.close()
+            conn.close()
+            return jsonify({"error": "User not found"}), 404
+        
+        # Deleta o usuário
+        cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
+        conn.commit()
+        
+        cursor.close()
+        conn.close()
+        
+        return jsonify({
+            "message": "User deleted successfully",
+            "deleted_user": user_to_delete['username']
+        }), 200
+        
+    except Exception as e:
+        cursor.close()
+        conn.close()
+        print(f"Erro ao deletar usuário: {e}")
+        return jsonify({"error": "Internal server error"}), 500
 
 @app.route('/resources', methods=['GET'])
 def get_resources():

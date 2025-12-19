@@ -1,0 +1,214 @@
+/* ===== ESTILOS EXTRAS PARA GERENCIAMENTO DE USUÁRIOS ===== */
+
+/* Card de usuário melhorado */
+.user-card {
+  background: #1a1c22e6;
+  backdrop-filter: blur(20px);
+  border: 1px solid #e6e6e614;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 8px 32px #00000040, 0 0 0 1px #e6e6e60a;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    background: #3b82f6;
+  }
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px #00000066, 0 0 0 1px #3b82f633;
+    border-color: #3b82f633;
+  }
+}
+
+/* Header do card com avatar */
+.user-card-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.user-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 20px;
+  color: #ffffff;
+  text-transform: uppercase;
+  box-shadow: 0 4px 12px #3b82f633;
+}
+
+/* Body do card */
+.user-card-body {
+  flex: 1;
+
+  h4 {
+    color: #e6e6e6;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+}
+
+/* Badge de role melhorado */
+.user-role-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &.role-admin {
+    background: #d61f3a33;
+    border: 1px solid #d61f3a66;
+    color: #d61f3a;
+  }
+
+  &.role-manager {
+    background: #b2771d33;
+    border: 1px solid #b2771d66;
+    color: #b2771dff;
+  }
+
+  &.role-employee {
+    background: #1faa6f33;
+    border: 1px solid #1faa6f66;
+    color: #1faa6f;
+  }
+}
+
+/* Footer do card com ações */
+.user-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  margin-top: 16px;
+  border-top: 1px solid #e6e6e614;
+}
+
+.user-card-date {
+  color: #a1a1aa;
+  font-size: 12px;
+}
+
+.user-card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* Botões de ação do usuário */
+.btn-user-edit,
+.btn-user-delete {
+  padding: 8px 12px;
+  background: transparent;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.btn-user-edit {
+  border: 1px solid #3b82f633;
+  color: #3b82f6;
+
+  &:hover {
+    background: #3b82f633;
+    border-color: #3b82f6;
+    transform: scale(1.05);
+  }
+}
+
+.btn-user-delete {
+  border: 1px solid #d61f3a33;
+  color: #d61f3a;
+
+  &:hover {
+    background: #d61f3a33;
+    border-color: #d61f3a;
+    transform: scale(1.05);
+  }
+}
+
+/* Badge "Você" para o próprio usuário */
+.user-self-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: #1faa6f33;
+  border: 1px solid #1faa6f66;
+  border-radius: 12px;
+  color: #1faa6f;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+/* Modal de editar usuário */
+#editUserModal {
+  .modal-content {
+    max-width: 500px;
+  }
+}
+
+/* Responsividade mobile */
+@media (max-width: 768px) {
+  .user-card-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .user-avatar {
+    margin: 0 auto;
+  }
+
+  .user-card-footer {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .user-card-actions {
+    width: 100%;
+    flex-direction: column;
+
+    button {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+}
