@@ -98,8 +98,10 @@
 /* Footer do card com ações */
 .user-card-footer {
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
   padding-top: 16px;
   margin-top: 16px;
   border-top: 1px solid #e6e6e614;
