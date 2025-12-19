@@ -1,5 +1,4 @@
-// ===== CONFIGURAÇÕES E CONSTANTES =====
-const API_URL = "https://wayne-industries-project-7cpu.onrender.com"
+const API_URL = window.CONFIG.API_URL
 
 // ===== VERIFICAÇÃO DE AUTENTICAÇÃO =====
 const user = JSON.parse(localStorage.getItem("user"))
@@ -13,6 +12,7 @@ const permissions = {
   canCreate: ["manager", "admin"].includes(user.role),
   canEdit: ["manager", "admin"].includes(user.role),
   canDelete: user.role === "admin",
+  canManageUsers: user.role === "admin",
 }
 
 // ===== ELEMENTOS DO DOM =====
@@ -21,23 +21,34 @@ const elements = {
   userRole: document.getElementById("userRole"),
   logoutBtn: document.getElementById("logoutBtn"),
 
+  navTabs: document.querySelectorAll(".nav-tab"),
+  usersTab: document.getElementById("usersTab"),
+  sections: document.querySelectorAll(".section-content"),
+
   // Estatísticas
   totalResources: document.getElementById("totalResources"),
   totalUsers: document.getElementById("totalUsers"),
   activeResources: document.getElementById("activeResources"),
   activityList: document.getElementById("activityList"),
-  activityPeriodFilter: document.getElementById("activityPeriodFilter"), // Adiciona elemento para filtro de período
+  activityPeriodFilter: document.getElementById("activityPeriodFilter"),
 
-  // Formulário criar
+  // Formulário criar recurso
   createSection: document.getElementById("createSection"),
   createForm: document.getElementById("createResourceForm"),
   resourceName: document.getElementById("resourceName"),
   resourceDescription: document.getElementById("resourceDescription"),
 
-  // Lista
+  // Lista de recursos
   resourcesList: document.getElementById("resourcesList"),
   emptyState: document.getElementById("emptyState"),
   loadingState: document.getElementById("loadingState"),
+
+  createUserForm: document.getElementById("createUserForm"),
+  newUsername: document.getElementById("newUsername"),
+  newPassword: document.getElementById("newPassword"),
+  newUserRole: document.getElementById("newUserRole"),
+  usersList: document.getElementById("usersList"),
+  usersLoadingState: document.getElementById("usersLoadingState"),
 
   // Modal Editar
   editModal: document.getElementById("editModal"),
@@ -45,7 +56,7 @@ const elements = {
   editForm: document.getElementById("editResourceForm"),
   editResourceName: document.getElementById("editResourceName"),
   editResourceDescription: document.getElementById("editResourceDescription"),
-  editResourceStatus: document.getElementById("editResourceStatus"), // Adicionado campo de status
+  editResourceStatus: document.getElementById("editResourceStatus"),
   cancelEdit: document.getElementById("cancelEdit"),
   confirmEdit: document.getElementById("confirmEdit"),
 
@@ -61,6 +72,7 @@ const elements = {
 let resourceToDelete = null
 let resourceToEdit = null
 let resourcesChart = null
+let currentSection = "stats"
 
 // ===== INICIALIZAÇÃO =====
 function init() {
@@ -70,6 +82,10 @@ function init() {
   elements.userName.textContent = user.username
   elements.userRole.textContent = user.role
 
+  if (permissions.canManageUsers) {
+    elements.usersTab.style.display = "block"
+  }
+
   // Mostra formulário de criação se tiver permissão
   if (permissions.canCreate) {
     elements.createSection.style.display = "block"
@@ -77,13 +93,21 @@ function init() {
     elements.createSection.style.display = "none"
   }
 
-  // Carrega estatísticas e recursos
+  // Carrega dados iniciais
   loadDashboardStats()
   loadResources()
 
-  // Event Listeners
+  elements.navTabs.forEach((tab) => {
+    tab.addEventListener("click", () => switchSection(tab.dataset.section))
+  })
+
+  // Event Listeners existentes
   elements.logoutBtn.addEventListener("click", handleLogout)
   elements.createForm.addEventListener("submit", handleCreateResource)
+
+  if (elements.createUserForm) {
+    elements.createUserForm.addEventListener("submit", handleCreateUser)
+  }
 
   // Modal Editar
   elements.editModalClose.addEventListener("click", closeEditModal)
@@ -109,6 +133,27 @@ function init() {
   })
 }
 
+function switchSection(section) {
+  currentSection = section
+
+  // Remove active de todas as abas e seções
+  elements.navTabs.forEach((tab) => tab.classList.remove("active"))
+  elements.sections.forEach((sec) => sec.classList.remove("active"))
+
+  // Adiciona active na aba e seção clicada
+  document.querySelector(`[data-section="${section}"]`).classList.add("active")
+  document.getElementById(`${section}Section`).classList.add("active")
+
+  // Carrega dados da seção
+  if (section === "stats") {
+    loadDashboardStats()
+  } else if (section === "resources") {
+    loadResources()
+  } else if (section === "users" && permissions.canManageUsers) {
+    loadUsers()
+  }
+}
+
 // ===== CARREGAR ESTATÍSTICAS =====
 async function loadDashboardStats() {
   try {
@@ -120,7 +165,6 @@ async function loadDashboardStats() {
     if (!response.ok) throw new Error("Erro ao carregar estatísticas")
 
     const stats = await response.json()
-    console.log("Estatísticas:", stats)
 
     // Atualiza cards de métricas
     elements.totalResources.textContent = stats.total_resources || 0
@@ -164,7 +208,6 @@ function renderActivities(activities) {
         activityClass = "activity-deleted"
         actionText = "Recurso excluído"
       } else if (activity.action === "status_change") {
-        // É uma mudança de status
         activityClass = `activity-${activity.new_status}`
 
         const statusTranslations = {
@@ -184,7 +227,6 @@ function renderActivities(activities) {
         activityClass = "activity-updated"
         actionText = "Descrição atualizada"
       } else if (activity.status) {
-        // É um recurso com status (fallback quando não há tabela de logs)
         activityClass = `activity-${activity.status}`
         actionText = `Recurso ${activity.status === "active" ? "ativo" : activity.status === "maintenance" ? "em manutenção" : "inativo"}`
       }
@@ -204,12 +246,10 @@ function renderActivities(activities) {
 function createResourcesChart(data) {
   const canvas = document.getElementById("resourcesChart")
 
-  // Destrói gráfico anterior se existir
   if (resourcesChart) {
     resourcesChart.destroy()
   }
 
-  // Prepara dados
   const labels = data.map((item) => item.status)
   const values = data.map((item) => item.count)
   const colors = {
@@ -313,7 +353,6 @@ function createResourceCard(resource) {
     }
   }
 
-  // Define a classe CSS baseada no status
   const statusClass = `status-${resource.status || "active"}`
 
   card.innerHTML = `
@@ -355,7 +394,6 @@ function createResourceCard(resource) {
         </div>
     `
 
-  // Event listeners
   if (permissions.canEdit) {
     const editBtn = card.querySelector(".btn-edit")
     if (editBtn) {
@@ -413,12 +451,122 @@ async function handleCreateResource(e) {
   }
 }
 
+async function loadUsers() {
+  if (!permissions.canManageUsers) return
+
+  try {
+    elements.usersLoadingState.style.display = "block"
+    elements.usersList.innerHTML = ""
+
+    const response = await fetch(`${API_URL}/users`, {
+      headers: { "X-User-Id": user.id.toString() },
+    })
+
+    if (!response.ok) {
+      throw new Error("Erro ao carregar usuários")
+    }
+
+    const users = await response.json()
+    elements.usersLoadingState.style.display = "none"
+
+    renderUsers(users)
+  } catch (error) {
+    console.error("Erro ao carregar usuários:", error)
+    elements.usersLoadingState.style.display = "none"
+    elements.usersList.innerHTML =
+      '<p style="color: #a1a1aa; text-align: center; padding: 20px;">Erro ao carregar usuários</p>'
+  }
+}
+
+function renderUsers(users) {
+  if (!users || users.length === 0) {
+    elements.usersList.innerHTML =
+      '<p style="color: #a1a1aa; text-align: center; padding: 20px;">Nenhum usuário encontrado</p>'
+    return
+  }
+
+  elements.usersList.innerHTML = users
+    .map((u) => {
+      const roleColors = {
+        admin: "#d61f3a",
+        manager: "#b2771dff",
+        employee: "#1faa6f",
+      }
+
+      const roleNames = {
+        admin: "Administrador",
+        manager: "Gerente",
+        employee: "Funcionário",
+      }
+
+      return `
+      <div class="user-card">
+        <div class="user-card-header">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+        </div>
+        <div class="user-card-body">
+          <h4>${escapeHtml(u.username)}</h4>
+          <span class="user-role-badge" style="background-color: ${roleColors[u.role]};">
+            ${roleNames[u.role] || u.role}
+          </span>
+        </div>
+      </div>
+    `
+    })
+    .join("")
+}
+
+async function handleCreateUser(e) {
+  e.preventDefault()
+
+  if (!permissions.canManageUsers) {
+    alert("Você não tem permissão para criar usuários.")
+    return
+  }
+
+  const username = elements.newUsername.value.trim()
+  const password = elements.newPassword.value.trim()
+  const role = elements.newUserRole.value
+
+  if (!username || !password || !role) {
+    alert("Preencha todos os campos")
+    return
+  }
+
+  try {
+    const response = await fetch(`${API_URL}/users`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-User-Id": user.id.toString(),
+      },
+      body: JSON.stringify({ username, password, role }),
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || "Erro ao criar usuário")
+    }
+
+    elements.createUserForm.reset()
+    await loadUsers()
+    await loadDashboardStats()
+    alert("Usuário criado com sucesso!")
+  } catch (error) {
+    console.error("Erro:", error)
+    alert(`Erro ao criar usuário: ${error.message}`)
+  }
+}
+
 // ===== MODAL DE EDIÇÃO =====
 function openEditModal(resource) {
   resourceToEdit = resource
   elements.editResourceName.value = resource.name
   elements.editResourceDescription.value = resource.description
-  elements.editResourceStatus.value = resource.status || "active" // Preenche o status atual
+  elements.editResourceStatus.value = resource.status || "active"
   elements.editModal.classList.add("active")
 }
 
@@ -433,7 +581,7 @@ async function handleConfirmEdit() {
 
   const name = elements.editResourceName.value.trim()
   const description = elements.editResourceDescription.value.trim()
-  const status = elements.editResourceStatus.value // Captura o novo status
+  const status = elements.editResourceStatus.value
 
   if (!name || !description) {
     alert("Preencha todos os campos")
@@ -447,7 +595,7 @@ async function handleConfirmEdit() {
         "Content-Type": "application/json",
         "X-User-Id": user.id.toString(),
       },
-      body: JSON.stringify({ name, description, status }), // Envia o status
+      body: JSON.stringify({ name, description, status }),
     })
 
     if (!response.ok) {
@@ -512,7 +660,7 @@ async function handleConfirmDelete() {
 // ===== LOGOUT =====
 function handleLogout() {
   localStorage.removeItem("user")
-  window.location.href = "/frontend/index.html"
+  window.location.href = "index.html"
 }
 
 // ===== SANITIZAR HTML =====

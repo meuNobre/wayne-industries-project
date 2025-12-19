@@ -32,6 +32,77 @@ def login():
 
     return jsonify(user)
 
+@app.route('/users', methods=['GET'])
+def get_users():
+    user_id = request.headers.get('X-User-Id')
+
+    if not user_id:
+        return jsonify({"error": "User not authenticated"}), 401
+    
+    conn = db()
+    cursor = conn.cursor(dictionary=True)
+    
+    # Verifica se é admin
+    cursor.execute("SELECT role FROM users WHERE id=%s", (user_id,))
+    user = cursor.fetchone()
+    
+    if not user or user['role'] != 'admin':
+        cursor.close()
+        conn.close()
+        return jsonify({"error": "Permission denied"}), 403
+    
+    # Busca todos os usuários
+    cursor.execute("SELECT id, username, role FROM users")
+    users = cursor.fetchall()
+    
+    cursor.close()
+    conn.close()
+    
+    return jsonify(users)
+
+@app.route('/users', methods=['POST'])
+def create_user():
+    user_id = request.headers.get('X-User-Id')
+
+    if not user_id:
+        return jsonify({"error": "User not authenticated"}), 401
+
+    data = request.json
+
+    conn = db()
+    cursor = conn.cursor(dictionary=True)
+
+    # Verifica se é admin
+    cursor.execute("SELECT role FROM users WHERE id = %s", (user_id,))
+    user = cursor.fetchone()
+
+    if not user or user['role'] != 'admin':
+        cursor.close()
+        conn.close()
+        return jsonify({"error": "Permission denied"}), 403
+
+    # Verifica se o usuário já existe
+    cursor.execute("SELECT id FROM users WHERE username = %s", (data['username'],))
+    existing_user = cursor.fetchone()
+
+    if existing_user:
+        cursor.close()
+        conn.close()
+        return jsonify({"error": "Username already exists"}), 400
+
+    # Cria o novo usuário
+    cursor.execute(
+        "INSERT INTO users (username, password, role) VALUES (%s, %s, %s)",
+        (data['username'], data['password'], data['role'])
+    )
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+    return jsonify({"message": "User created successfully"}), 201
+
+
 @app.route('/resources', methods=['GET'])
 def get_resources():
 
@@ -216,13 +287,7 @@ def delete_resource(resource_id):
 @app.route('/dashboard/stats', methods=['GET'])
 def get_dashboard_stats():
     """
-    Retorna estatísticas para o dashboard:
-    - Total de recursos
-    - Total de usuários
-    - Recursos ativos
-    - Recursos por status
-    - Usuários por role
-    - Atividades recentes
+    Retorna estatísticas para o dashboard
     """
     
     user_id = request.headers.get('X-User-Id')
@@ -244,11 +309,11 @@ def get_dashboard_stats():
         cursor.execute("SELECT COUNT(*) as total FROM users")
         total_users = cursor.fetchone()['total']
         
-        # 3. Recursos ativos (status = 'active')
+        # 3. Recursos ativos
         cursor.execute("SELECT COUNT(*) as total FROM resources WHERE status = 'active'")
         active_resources = cursor.fetchone()['total']
         
-        # 4. Recursos por status (para o gráfico)
+        # 4. Recursos por status
         cursor.execute("""
             SELECT status, COUNT(*) as count 
             FROM resources 
@@ -285,7 +350,6 @@ def get_dashboard_stats():
             elif period == '30days':
                 period_filter = "WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)"
             
-            # Se existe tabela de logs, buscar dos logs
             cursor.execute(f"""
                 SELECT 
                     resource_name as name,
@@ -313,7 +377,6 @@ def get_dashboard_stats():
         cursor.close()
         conn.close()
         
-        # Retorna todas as estatísticas
         return jsonify({
             "total_resources": total_resources,
             "total_users": total_users,
@@ -329,7 +392,8 @@ def get_dashboard_stats():
         print(f"Erro ao buscar estatísticas: {e}")
         return jsonify({"error": "Internal server error"}), 500
 
+
 if __name__ == '__main__':
     import os
-    port = int(os.environ.get("PORT", 5000))  # pega a porta do Render ou 5000 local
+    port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
