@@ -71,7 +71,7 @@ def get_users():
         return jsonify({"error": "Permission denied"}), 403
     
     # Busca todos os usuários
-    cursor.execute("SELECT id, username, role FROM users")
+    cursor.execute("SELECT id, username, role, created_at FROM users")
     users = cursor.fetchall()
     
     cursor.close()
