@@ -1,5 +1,5 @@
 // ===== CONFIGURAÇÕES E CONSTANTES =====
-const API_URL = "http://127.0.0.1:5000"
+const API_URL = "https://wayne-industries-project-7cpu.onrender.com"
 
 // ===== VERIFICAÇÃO DE AUTENTICAÇÃO =====
 const user = JSON.parse(localStorage.getItem("user"))

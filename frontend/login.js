@@ -7,14 +7,14 @@ const loginError = document.getElementById('loginError');
 const user = JSON.parse(localStorage.getItem('user'));
 
 if (user) {
-    window.location.href = '/frontend/dashboard.html';
+    window.location.href = 'dashboard.html';
 }
 
 async function login() {
     const username = userInput.value;
     const password = passwordInput.value;
 
-    const response = await fetch("http://127.0.0.1:5000/login", {
+    const response = await fetch("https://wayne-industries-project-7cpu.onrender.com/login", {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
