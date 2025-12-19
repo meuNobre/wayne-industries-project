@@ -19,7 +19,9 @@ CORS(
 @app.before_request
 def handle_preflight():
     if request.method == "OPTIONS":
-        return "", 200
+        resp = app.make_default_options_response()
+        return resp
+
 
 
 @app.route('/')
