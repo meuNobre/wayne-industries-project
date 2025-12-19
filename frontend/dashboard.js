@@ -481,7 +481,7 @@ async function handleCreateResource(e) {
     elements.createForm.reset()
     await loadResources()
     await loadDashboardStats()
-    alert("Recurso criado com sucesso!")
+
   } catch (error) {
     console.error("Erro:", error)
     alert(`Erro ao criar recurso: ${error.message}`)
@@ -705,7 +705,6 @@ async function handleConfirmDeleteUser() {
     closeDeleteUserModal()
     await loadUsers()
     await loadDashboardStats()
-    alert('Usuário excluído com sucesso!')
   } catch (error) {
     console.error('Erro:', error)
     alert(`Erro ao deletar usuário: ${error.message}`)
@@ -747,7 +746,6 @@ async function handleCreateUser(e) {
     elements.createUserForm.reset()
     await loadUsers()
     await loadDashboardStats()
-    alert("Usuário criado com sucesso!")
   } catch (error) {
     console.error("Erro:", error)
     alert(`Erro ao criar usuário: ${error.message}`)
@@ -803,7 +801,6 @@ async function handleConfirmEdit() {
     closeEditModal()
     await loadResources()
     await loadDashboardStats()
-    alert("Recurso atualizado com sucesso!")
   } catch (error) {
     console.error("Erro:", error)
     alert(`Erro ao editar recurso: ${error.message}`)
@@ -843,7 +840,6 @@ async function handleConfirmDelete() {
     closeDeleteModal()
     await loadResources()
     await loadDashboardStats()
-    alert("Recurso excluído com sucesso!")
   } catch (error) {
     console.error("Erro:", error)
     alert(`Erro ao excluir recurso: ${error.message}`)
