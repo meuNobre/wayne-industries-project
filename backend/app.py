@@ -174,6 +174,51 @@ def delete_user(user_id):
         conn.close()
         print(f"Erro ao deletar usuário: {e}")
         return jsonify({"error": "Internal server error"}), 500
+    
+@app.route('/users/<int:user_id>', methods=['PUT'])
+def update_user(user_id):
+    admin_id = request.headers.get('X-User-Id')
+    if not admin_id:
+        return jsonify({"error": "User not authenticated"}), 401
+
+    data = request.json
+    conn = db()
+    cursor = conn.cursor(dictionary=True)
+
+    # verifica se o usuário é admin
+    cursor.execute("SELECT role FROM users WHERE id=%s", (admin_id,))
+    admin = cursor.fetchone()
+    if not admin or admin['role'] != 'admin':
+        cursor.close()
+        conn.close()
+        return jsonify({"error": "Permission denied"}), 403
+
+    # verifica se o usuário existe
+    cursor.execute("SELECT id FROM users WHERE id=%s", (user_id,))
+    existing_user = cursor.fetchone()
+    if not existing_user:
+        cursor.close()
+        conn.close()
+        return jsonify({"error": "User not found"}), 404
+
+    # atualiza dados
+    fields = ["username", "role", "password"]
+    updates = []
+    values = []
+    for f in fields:
+        if f in data:
+            updates.append(f"{f}=%s")
+            values.append(data[f])
+    values.append(user_id)
+
+    cursor.execute(f"UPDATE users SET {', '.join(updates)} WHERE id=%s", values)
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+    return jsonify({"message": "User updated successfully"}), 200
+
 
 @app.route('/resources', methods=['GET'])
 def get_resources():
