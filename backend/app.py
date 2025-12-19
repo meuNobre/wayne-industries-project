@@ -330,4 +330,6 @@ def get_dashboard_stats():
         return jsonify({"error": "Internal server error"}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    import os
+    port = int(os.environ.get("PORT", 5000))  # pega a porta do Render ou 5000 local
+    app.run(host="0.0.0.0", port=port, debug=True)
