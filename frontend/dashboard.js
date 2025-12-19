@@ -5,7 +5,7 @@ const API_URL = "https://wayne-industries-project-7cpu.onrender.com"
 const user = JSON.parse(localStorage.getItem("user"))
 
 if (!user) {
-  window.location.href = "/frontend/index.html"
+  window.location.href = "index.html"
 }
 
 // ===== CONTROLE DE PERMISSÕES =====

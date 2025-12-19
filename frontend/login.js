@@ -30,7 +30,7 @@ async function login() {
     }
     
     localStorage.setItem("user", JSON.stringify(data));
-    window.location.href = '/frontend/dashboard.html';
+    window.location.href = 'dashboard.html';
 }
 
 button.addEventListener('click', login);
