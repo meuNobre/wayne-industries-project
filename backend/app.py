@@ -8,7 +8,8 @@ from flask_cors import CORS
 CORS(
     app,
     resources={r"/*": {"origins": [
-        "https://wayne-industries-project.vercel.app"
+        "https://wayne-industries-project.vercel.app",
+        "http://127.0.0.1:5500/"
     ]}},
     supports_credentials=True,
     allow_headers=["Content-Type", "X-User-Id"],

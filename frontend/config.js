@@ -1,5 +1,5 @@
 const CONFIG = {
-  API_URL: "https://wayne-industries-project-7cpu.onrender.com",
+  API_URL: "https://wayneindustries.discloud.app",
 }
 
 window.CONFIG = CONFIG
