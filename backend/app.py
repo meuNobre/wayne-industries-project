@@ -5,16 +5,7 @@ from db import get_db_connection as db;
 app = Flask(__name__)
 from flask_cors import CORS
 
-CORS(
-    app,
-    resources={r"/*": {"origins": [
-        "https://wayne-industries-project.vercel.app",
-        "http://127.0.0.1:5500"
-    ]}},
-    supports_credentials=True,
-    allow_headers=["Content-Type", "X-User-Id"],
-    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
-)
+CORS(app, resources={r"/*": {"origins": "*"}}) 
 
 
 @app.before_request
